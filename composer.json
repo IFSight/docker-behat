@@ -1,0 +1,11 @@
+{
+  "require": {
+    "drupal/drupal-extension": "~3.0",
+    "guzzlehttp/guzzle" : "^6.0@dev",
+    "drupal/drupal-driver": "dev-master",
+    "symfony/dependency-injection": "~3.2.8"
+},
+  "config": {
+    "bin-dir": "bin/"
+  }
+}
