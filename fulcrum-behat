@@ -37,7 +37,7 @@ if [ "http" != "$SCHEME" ]; then
 fi
 
 # if port is not standard for the scheme, then add it
-if [ [ "https" = "$SCHEME" && "443" != "$PORT" ] || [ "http" = "$SCHEME" && "80" != "$PORT" ] ]; then
+if { [ "https" = "$SCHEME" ] && [ "443" != "$PORT" ]; } || { [ "http" = "$SCHEME" ] && [ "80" != "$PORT" ]i; } ; then
   PORT_SUFFIX=":$PORT"
 fi
 
