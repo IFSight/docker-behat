@@ -7,7 +7,7 @@
 
 if [ -z "$1" ]; then
   echo "Invalid usage"
-  echo "$0 <TESTHOST> [TESTIP] [DIRPREFIX]"
+  echo "$0 <TESTHOST> [TESTIP] [DIRPREFIX] [SCHEME] [PORT] [BEHAT_ARGS]"
   exit 1
 fi
 
@@ -15,9 +15,14 @@ fi
 TESTHOST="$( echo "$1" | sed -e 's/[^A-Za-z0-9.-]//g'   | sed -e 's/\.\.*/./g')"
 TESTIP="$(   echo "$2" | sed -e 's/[^0-9.:]//g'         | sed -e 's/\.\.*/./g')"
 DIRPREFIX="$(echo "$3" | sed -e 's/[^A-Za-z0-9.-\/]//g' | sed -e 's/\.\.*/./g')"
+SCHEME="$4"
+PORT="$(echo "$3" | sed -e 's/[^0-9]//g')"
 DATE="$(date '+%Y%m%d%H%M%S')"
-TESTDIR="/sites/$TESTHOST/tests"
+TESTDIR="/sites/$TESTHOST/tests/functional"
+PORT_SUFFIX=""
 
+shift
+shift
 shift
 shift
 shift
@@ -27,10 +32,17 @@ if [ -n "$DIRPREFIX" ]; then
   TESTDIR="/sites/$TESTHOST/$DIRPREFIX"
 fi
 
-echo "TESTHOST: $TESTHOST"
-echo "TESTIP: $TESTIP"
-echo "DIRPREFIX: $DIRPREFIX"
-echo "TESTDIR: $TESTDIR"
+if [ "http" != "$SCHEME" ]; then
+  SCHEME="https"
+fi
+
+# if port is not standard for the scheme, then add it
+if [ [ "https" = "$SCHEME" && "443" != "$PORT" ] || [ "http" = "$SCHEME" && "80" != "$PORT" ] ]; then
+  PORT_SUFFIX=":$PORT"
+fi
+
+BASE_URL="$SCHEME://$TESTHOST$PORT_SUFFIX"
+BEHAT_PARAMS="{\"extensions\": {\"Behat\\\\MinkExtension\": {\"base_url\": \"$BASE_URL\"}}}"
 
 if [ -n "$TESTIP" ]; then
   echo "Adding $TESTIP $TESTHOST to /etc/hosts if needed"
@@ -41,5 +53,17 @@ if [ -n "$TESTIP" ]; then
 
   echo "$(grep -v $TESTHOST /etc/hosts ; echo "$TESTIP $TESTHOST")" > /etc/hosts
 fi
+
+echo "TESTHOST:     '$TESTHOST'"
+echo "TESTIP:       '$TESTIP'"
+echo "DIRPREFIX:    '$DIRPREFIX'"
+echo "SCHEME:       '$SCHEME'"
+echo "PORT:         '$PORT'"
+echo "TESTDIR:      '$TESTDIR'"
+echo "BASE_URL:     '$BASE_URL'"
+echo "BEHAT_PARAMS: '$BEHAT_PARAMS'"
+echo "BEHAT_ARGS:   '$BEHAT_ARGS'"
+
+export BEHAT_PARAMS
 
 cd "$TESTDIR" && behat $BEHAT_ARGS
