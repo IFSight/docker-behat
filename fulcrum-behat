@@ -1,0 +1,45 @@
+#!/bin/sh
+
+# Fulcrum wrapper to Behat
+#  * default test directory to /sites/<TESTHOST>/test
+#  * allow override of test directory via a DIRPREFIX
+#  * provide IP for host in case of local development
+
+if [ -z "$1" ]; then
+  echo "Invalid usage"
+  echo "$0 <TESTHOST> [TESTIP] [DIRPREFIX]"
+  exit 1
+fi
+
+# sanitize variables
+TESTHOST="$( echo "$1" | sed -e 's/[^A-Za-z0-9.-]//g'   | sed -e 's/\.\.*/./g')"
+TESTIP="$(   echo "$2" | sed -e 's/[^0-9.:]//g'         | sed -e 's/\.\.*/./g')"
+DIRPREFIX="$(echo "$3" | sed -e 's/[^A-Za-z0-9.-\/]//g' | sed -e 's/\.\.*/./g')"
+DATE="$(date '+%Y%m%d%H%M%S')"
+TESTDIR="/sites/$TESTHOST/tests"
+
+shift
+shift
+shift
+BEHAT_ARGS=$@
+
+if [ -n "$DIRPREFIX" ]; then
+  TESTDIR="/sites/$TESTHOST/$DIRPREFIX"
+fi
+
+echo "TESTHOST: $TESTHOST"
+echo "TESTIP: $TESTIP"
+echo "DIRPREFIX: $DIRPREFIX"
+echo "TESTDIR: $TESTDIR"
+
+if [ -n "$TESTIP" ]; then
+  echo "Adding $TESTIP $TESTHOST to /etc/hosts if needed"
+
+  mkdir -p /etc/hosts.bak
+
+  cp /etc/hosts /etc/hosts.bak/hosts.$DATE.$TESTHOST
+
+  echo "$(grep -v $TESTHOST /etc/hosts ; echo "$TESTIP $TESTHOST")" > /etc/hosts
+fi
+
+cd "$TESTDIR" && behat $BEHAT_ARGS

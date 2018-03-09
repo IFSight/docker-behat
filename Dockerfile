@@ -2,7 +2,7 @@ FROM alpine:edge
 MAINTAINER IF Fulcrum "fulcrum@ifsight.net"
 
 ADD composer.json /opt/drupalextension/
-ADD docker-entrypoint.sh /
+ADD fulcrum-behat /fulcrum-behat
 
 RUN apk update && \
     apk upgrade --no-cache && \
@@ -22,4 +22,6 @@ RUN apk update && \
     chown    root     /var/spool/postfix                        && \
     echo smtputf8_enable = no >> /etc/postfix/main.cf
 
-ENTRYPOINT ["/docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/Xvfb"]
+
+CMD [":99", "-ac"]
