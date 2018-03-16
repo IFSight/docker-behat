@@ -21,11 +21,7 @@ DATE="$(date '+%Y%m%d%H%M%S')"
 TESTDIR="/sites/$TESTHOST/tests/functional"
 PORT_SUFFIX=""
 
-shift
-shift
-shift
-shift
-shift
+shift 5
 BEHAT_ARGS=$@
 
 if [ -n "$DIRPREFIX" ]; then
@@ -37,8 +33,10 @@ if [ "http" != "$SCHEME" ]; then
 fi
 
 # if port is not standard for the scheme, then add it
-if { [ "https" = "$SCHEME" ] && [ "443" != "$PORT" ]; } || { [ "http" = "$SCHEME" ] && [ "80" != "$PORT" ]i; } ; then
-  PORT_SUFFIX=":$PORT"
+if [ -n "$PORT" ]; then
+  if { [ "https" = "$SCHEME" ] && [ "443" != "$PORT" ]; } || { [ "http" = "$SCHEME" ] && [ "80" != "$PORT" ]i; } ; then
+    PORT_SUFFIX=":$PORT"
+  fi
 fi
 
 BASE_URL="$SCHEME://$TESTHOST$PORT_SUFFIX"
